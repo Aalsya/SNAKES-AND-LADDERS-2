@@ -3,7 +3,7 @@ const ROLLSTATE = 0;
 const MOVESTATE = 1;
 const SNADDER = 2;
 var state = ROLLSTATE;
-var database, form;
+var database, form, gamestate, gameState;
 
 var tiles = [];
 var player, allPlayers, playerCount;
@@ -20,44 +20,27 @@ function setup() {
   rolls[index] = 0;
   avgP = createP('');
 
-  var resoln = 60;
-  var cols = height / resoln;
-  var rows = width / resoln;
-
-  var x = 0;
-  var y = (rows - 1) * resoln;
-  var dir = 1;
-  
-
-  for (var i = 0; i < cols * rows; i++) {
-    var tile = new Tile(x, y, resoln, i, i + 1);
-    tiles.push(tile);
-    x += (resoln * dir);
-    if (x >= width || x <= -resoln) {
-      dir *= -1;
-      x += resoln * dir;
-      y -= resoln;
-    }
-  }
-
-//snakes
-  for (var i = 0; i < 5; i++) {
-    var index = floor(random(cols, tiles.length-1));
-    tiles[index].snadder = -1 * floor(random(index % cols, index - 1));
-  }
-
-//ladders
-  for (var i = 0; i < 5; i++) {
-    var index = floor(random(0, tiles.length - cols));
-    tiles[index].snadder = floor(random(cols - (index % cols), tiles.length - index - 1));
-  }
-
-  //player = new Player();
+  gamestate = new State();
+  gamestate.readState();
+  gamestate.start();
 }
 
 function draw() {
   background(50);
   frameRate(5);
+
+  if (playerCount === 4) {
+    gamestate.updateState(1);
+  } 
+  
+  if (gameState === 1) {
+    clear();
+    gamestate.play();
+  }
+
+  if (gameState === 2) {
+    gamestate.end();
+  }
 
   for (var tile of tiles) {
     tile.display();
@@ -88,7 +71,7 @@ function draw() {
     player.spot = tiles.length - 1;
     gameover = true;
   }
-  player.display();
+  //player.display();
 
   if (gameover) {
     player.reset();
